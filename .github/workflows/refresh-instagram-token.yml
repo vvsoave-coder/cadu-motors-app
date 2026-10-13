@@ -1,0 +1,17 @@
+name: Renovar token do Instagram (semanal)
+
+on:
+  schedule:
+    - cron: "0 6 * * 1" # toda segunda às 06:00 UTC
+  workflow_dispatch: {}
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Chamar /api/instagram-refresh-token
+        run: |
+          curl -sf -X POST "${{ secrets.SITE_URL }}/api/instagram-refresh-token" \
+            -H "x-cron-secret: ${{ secrets.CRON_SECRET }}" \
+            -o response.json -w "HTTP %{http_code}\n"
+          cat response.json

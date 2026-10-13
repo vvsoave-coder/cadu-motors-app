@@ -1,0 +1,18 @@
+name: Sync Instagram (a cada 20 min)
+
+on:
+  schedule:
+    - cron: "*/20 * * * *"
+  workflow_dispatch: {} # permite rodar manualmente pela aba Actions no GitHub
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Chamar /api/sync-instagram
+        run: |
+          curl -sf -X POST "${{ secrets.SITE_URL }}/api/sync-instagram" \
+            -H "x-cron-secret: ${{ secrets.CRON_SECRET }}" \
+            -H "Content-Type: application/json" \
+            -o response.json -w "HTTP %{http_code}\n"
+          cat response.json
