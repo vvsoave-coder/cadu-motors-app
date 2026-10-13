@@ -10,4 +10,14 @@
 -- de self-select sozinha já cobre o uso real (checar o próprio role).
 -- Removendo a policy recursiva.
 
-drop policy if exists "profiles: admin vê todos os perfis" on public.profiles;
+do $$
+declare
+  r record;
+begin
+  for r in select policyname from pg_policies where tablename = 'profiles' and cmd = 'SELECT'
+  loop
+    execute format('drop policy %I on public.profiles', r.policyname);
+  end loop;
+end $$;
+
+create policy "profiles_self_select" on public.profiles for select using (auth.uid() = id);
