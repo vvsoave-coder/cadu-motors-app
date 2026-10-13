@@ -101,7 +101,7 @@ export default async function handler(req, res) {
 
     const { data: existingVehicles } = await supabaseAdmin
       .from('vehicles')
-      .select('id, instagram_post_id, override_manual, data_venda')
+      .select('id, instagram_post_id, override_manual, data_venda, photo_url')
       .not('instagram_post_id', 'is', null);
     const existingMap = new Map((existingVehicles || []).map((v) => [v.instagram_post_id, v]));
 
@@ -114,17 +114,22 @@ export default async function handler(req, res) {
       const existing = existingMap.get(item.id);
 
       if (existing) {
-        const photos = await collectAndStorePhotos(supabaseAdmin, item, accessToken);
         const update = {
           instagram_caption: caption,
           instagram_url: item.permalink,
           ativo: true,
           review_status: 'publicado',
         };
-        if (photos.length) {
-          update.photos = photos;
-          update.photo_url = photos[0];
-          update.gallery = photos.slice(1);
+        // Só baixa as fotos de novo se o veículo ainda não tiver nenhuma
+        // (ex.: link do Instagram tinha expirado na migração). Reprocessar
+        // fotos de todo mundo a cada sync estoura o tempo da function.
+        if (!existing.photo_url) {
+          const photos = await collectAndStorePhotos(supabaseAdmin, item, accessToken);
+          if (photos.length) {
+            update.photos = photos;
+            update.photo_url = photos[0];
+            update.gallery = photos.slice(1);
+          }
         }
         if (!existing.override_manual) {
           Object.assign(update, buildClassificationUpdate(caption, existing.data_venda));
