@@ -1,9 +1,11 @@
-name: Sync Instagram (a cada 20 min)
+name: Sync Instagram (manual / backup)
 
+# O agendamento automático a cada 20 min foi migrado pro cron-job.org
+# (o schedule do GitHub Actions não é confiável para intervalos curtos —
+# historicamente rodava a cada 2-5h em vez de 20 min). Mantido aqui só
+# como disparo manual de backup pela aba Actions.
 on:
-  schedule:
-    - cron: "*/20 * * * *"
-  workflow_dispatch: {} # permite rodar manualmente pela aba Actions no GitHub
+  workflow_dispatch: {}
 
 jobs:
   sync:
